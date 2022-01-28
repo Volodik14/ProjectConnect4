@@ -7,12 +7,14 @@
 
 import Foundation
 
+// Исключения при вводе размера доски.
 enum DimensionsError: Error {
     case invalidInput
     case rowsOutOfBounds
     case colsOutOfBounds
 }
 
+// Получение размеров доски, переводит строку в кортеж с размерами.
 func getDimensions(dimensions: String) throws -> (Int, Int)  {
     if dimensions == "" {
         return (6, 7)
@@ -36,6 +38,7 @@ func getDimensions(dimensions: String) throws -> (Int, Int)  {
     return (rows, cols)
 }
 
+// Основной класс игры.
 class GameCore {
     private let player1: String
     private let player2: String
@@ -51,7 +54,8 @@ class GameCore {
     }
 }
 
-func inputAllData() {
+// Функция для ввода данных.
+func inputAllData() -> (player1 : String, player2 : String, rows : Int, cols: Int) {
     print("Connect Four")
     // Ввод имён игроков.
     var player1: String? = ""
@@ -86,11 +90,12 @@ func inputAllData() {
         }
     }
 
-    print("\(player1!) VS \(player2!)")
-    print("\(dimensions.0) X \(dimensions.1) board")
+    return (player1!, player2!, dimensions.0, dimensions.1)
 }
 
-inputAllData()
+let (player1, player2, rows, cols) = inputAllData()
+print("\(player1) VS \(player2)")
+print("\(rows) X \(cols) board")
 
 
 
