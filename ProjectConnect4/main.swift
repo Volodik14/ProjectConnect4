@@ -52,6 +52,25 @@ class GameCore {
         self.rows = rows
         self.cols = cols
     }
+    
+    // Печатает доску
+    func drawBoard() {
+        for i in 0..<cols {
+            print(" \(i+1)", terminator: "")
+        }
+        print("")
+        for _ in 0..<rows {
+            for _ in 0...cols {
+                print("║ ", separator: "", terminator: "")
+            }
+            print("")
+        }
+        print("╚═", separator: "", terminator: "")
+        for _ in 1..<cols {
+            print("╩═", separator: "", terminator: "")
+        }
+        print("╝")
+    }
 }
 
 // Функция для ввода данных.
@@ -96,6 +115,8 @@ func inputAllData() -> (player1 : String, player2 : String, rows : Int, cols: In
 let (player1, player2, rows, cols) = inputAllData()
 print("\(player1) VS \(player2)")
 print("\(rows) X \(cols) board")
+let gameCore = GameCore(player1: player1, player2: player2, rows: rows, cols: cols)
+gameCore.drawBoard()
 
 
 
