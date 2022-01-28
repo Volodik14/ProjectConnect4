@@ -40,10 +40,12 @@ func getDimensions(dimensions: String) throws -> (Int, Int)  {
 
 // Основной класс игры.
 class GameCore {
+    
     private let player1: String
     private let player2: String
     private let rows: Int
     private let cols: Int
+    private var rowsArrays: [[Character]]
     
     
     init(player1: String, player2: String, rows: Int, cols: Int) {
@@ -51,25 +53,76 @@ class GameCore {
         self.player2 = player2
         self.rows = rows
         self.cols = cols
+        rowsArrays = Array(repeating: [Character](), count: cols)
     }
     
     // Печатает доску
     func drawBoard() {
+        // Номера столбцов.
         for i in 0..<cols {
             print(" \(i+1)", terminator: "")
         }
         print("")
-        for _ in 0..<rows {
-            for _ in 0...cols {
-                print("║ ", separator: "", terminator: "")
+        for i in (0..<rows).reversed()  {
+            print("║", separator: "", terminator: "")
+            for j in 0..<cols {
+                if i >= rowsArrays[j].count {
+                    print(" ", separator: "", terminator: "")
+                } else {
+                    print(rowsArrays[j][i], separator: "", terminator: "")
+                }
+                print("║", separator: "", terminator: "")
             }
             print("")
         }
+        // Дно столбцов.
         print("╚═", separator: "", terminator: "")
         for _ in 1..<cols {
             print("╩═", separator: "", terminator: "")
         }
         print("╝")
+    }
+    
+    func startGame() {
+        // Можно было бы сделать enum.
+        var turnFirst = true
+        var input = ""
+        while input != "end" {
+            if turnFirst {
+                print("\(player1)'s turn")
+            } else {
+                print("\(player2)'s turn")
+            }
+            var correct = false
+            var col = 0
+            while !correct {
+                input = readLine()!
+                if input == "end" {
+                    print("Game over!")
+                    break
+                }
+                if let number = Int(input) {
+                    if number > cols {
+                        print("The column number is out of range (1 - \(cols)")
+                    } else if rowsArrays[number-1].count == rows {
+                        print("Column \(number) is full")
+                    } else {
+                        correct = true
+                        col = number - 1
+                    }
+                } else {
+                    print("Incorrect column number")
+                }
+            }
+            if turnFirst {
+                rowsArrays[col].append("o")
+            } else {
+                rowsArrays[col].append("*")
+            }
+            turnFirst.toggle()
+            drawBoard()
+        }
+        
     }
 }
 
@@ -117,6 +170,7 @@ print("\(player1) VS \(player2)")
 print("\(rows) X \(cols) board")
 let gameCore = GameCore(player1: player1, player2: player2, rows: rows, cols: cols)
 gameCore.drawBoard()
+gameCore.startGame()
 
 
 
