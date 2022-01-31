@@ -19,14 +19,14 @@ func getDimensions(dimensions: String) throws -> (Int, Int)  {
     if dimensions == "" {
         return (6, 7)
     }
+    // Преобразования для получения корректного формата.
     var lowercasedDimensions = dimensions.lowercased()
     lowercasedDimensions.removeAll(where: {$0 == " "})
+    // Проверки на корректный ввод.
     guard let xIndex = lowercasedDimensions.firstIndex(of: "x") else {
-        print("kek")
         throw DimensionsError.invalidInput
     }
     guard let rows = Int(lowercasedDimensions[..<xIndex]), let cols = Int(lowercasedDimensions[lowercasedDimensions.index(after: xIndex)...]) else {
-        print("lol")
         throw DimensionsError.invalidInput
     }
     if rows > 9 || rows < 5 {
@@ -90,26 +90,31 @@ class GameCore {
     }
     
     
-    
+    // Несколько страшная функция, но таким образом мы не проходим дважды по уже рассмотренным элементам при проверке строк и столбцов, как например при использовании фильтра.
     func checkWin() -> Bool {
+        
+        // Проверка 1 столбца на 4-в-ряд.
         func checkCol(col: [Character]) -> Bool {
+            // Не рассматриваем если меньше элементов.
             if col.count < 4 {
                 return false
             }
             var i = 0
             var count = 1
+            // Проверяем пока не останутся 4 элемента для проверки
             while col.count - i > 4 {
                 if col[i] == col[i+1] {
                     count += 1
                 } else {
                     count = 1
                 }
-                // Проверяем 4 в ряд.
+                // Проверяем 4-в-ряд.
                 if count == 4 {
                     return true
                 }
                 i += 1
             }
+            // Если попадается хоть 1 не равный изначальному элемент среди оставшихся 4-х - ряд отсутствует.
             while i < col.count-1 {
                 if col[i] != col[i+1] {
                     return false
@@ -119,9 +124,11 @@ class GameCore {
             return true
         }
         
+        // Проверяем 4-в-ряд в каждом ряду.
         func checkRow(rowi: Int) -> Bool {
             var i = 0
             var count = 1
+            // Проверяем пока не останется 4 элемента.
             while cols - i > 4 {
                 if colsArrays[i].count < rowi+1 {
                     count = 1
@@ -134,11 +141,13 @@ class GameCore {
                         count = 1
                     }
                 }
+                // Проверяем 4-в-ряд.
                 if count == 4 {
                     return true
                 }
                 i += 1
             }
+            // Если попадается хоть 1 не равный изначальному элемент среди оставшихся 4-х - ряд отсутствует.
             while i < cols-1 {
                 if colsArrays[i].count < rowi+1 || colsArrays[i+1].count < rowi+1  {
                     return false
@@ -151,6 +160,7 @@ class GameCore {
             return true
         }
         
+        // Проверка диагонали на наличие ряда. Здесь уже в качестве примера использовал фильтр.
         func checkDiag(startCol: Int, startRow: Int) -> Bool {
             if colsArrays[startCol].count <= startRow {
                 return false
@@ -168,6 +178,7 @@ class GameCore {
             return true
         }
         
+        // Проверка всех столбцов.
         func checkCols() -> Bool {
             for col in colsArrays {
                 if checkCol(col: col) {
@@ -177,6 +188,7 @@ class GameCore {
             return false
         }
         
+        // Проверка всех строк.
         func checkRows() -> Bool {
             for rowi in (0..<rows).reversed() {
                 if checkRow(rowi: rowi) {
@@ -186,6 +198,7 @@ class GameCore {
             return false
         }
         
+        // Проверка всех диагоналей.
         func checkDiags() -> Bool {
             for coli in (0...cols-4) {
                 for rowi in (0...rows-4) {
@@ -197,11 +210,13 @@ class GameCore {
             return false
         }
         
+        // Вызов всех функций для проверки.
         return checkCols() || checkRows() || checkDiags()
     }
     
+    // Функция для начала игры.
     func startGame() {
-        // Можно было бы сделать enum.
+        // Ходит ли сейчас первый игрок.
         var turnFirst = true
         var input = ""
         while input != "end" {
@@ -210,14 +225,17 @@ class GameCore {
             } else {
                 print("\(player2)'s turn")
             }
+            // Флаг для проверки корректности ввода.
             var correct = false
             var col = 0
             while !correct {
                 input = readLine()!
+                // Если ввели конец игры - останавливаем игру.
                 if input == "end" {
                     print("Game over!")
                     break
                 }
+                // Проверка номера столбца на корректность.
                 if let number = Int(input) {
                     if number > cols {
                         print("The column number is out of range (1 - \(cols)")
@@ -231,12 +249,14 @@ class GameCore {
                     print("Incorrect column number")
                 }
             }
+            // Добавляем значение в столбец.
             if turnFirst {
                 colsArrays[col].append("o")
             } else {
                 colsArrays[col].append("*")
             }
             drawBoard()
+            // Проверяем победу, если она есть, то тот, кто только что ходил, является победителем.
             if checkWin() {
                 if turnFirst {
                     print("Player \(player1) won")
@@ -246,11 +266,13 @@ class GameCore {
                 print("Game Over!")
                 return
             }
+            // Если дошли до максимально возможного хода.
             if turn == maxTurn {
                 print("It is a draw")
                 print("Game Over!")
                 return
             }
+            // Переключаемся на ход оппонента.
             turnFirst.toggle()
             turn += 1
         }
@@ -297,6 +319,7 @@ func inputAllData() -> (player1 : String, player2 : String, rows : Int, cols: In
     return (player1!, player2!, dimensions.0, dimensions.1)
 }
 
+// Main.
 let (player1, player2, rows, cols) = inputAllData()
 print("\(player1) VS \(player2)")
 print("\(rows) X \(cols) board")
