@@ -45,7 +45,9 @@ class GameCore {
     private let player2: String
     private let rows: Int
     private let cols: Int
-    private var rowsArrays: [[Character]]
+    private var colsArrays: [[Character]]
+    private var turn: Int
+    private let maxTurn: Int
     
     
     init(player1: String, player2: String, rows: Int, cols: Int) {
@@ -53,7 +55,9 @@ class GameCore {
         self.player2 = player2
         self.rows = rows
         self.cols = cols
-        rowsArrays = Array(repeating: [Character](), count: cols)
+        colsArrays = Array(repeating: [Character](), count: cols)
+        turn = 0
+        maxTurn = cols * rows
     }
     
     // Печатает доску
@@ -63,13 +67,15 @@ class GameCore {
             print(" \(i+1)", terminator: "")
         }
         print("")
+        // Содержимое столбцов.
         for i in (0..<rows).reversed()  {
             print("║", separator: "", terminator: "")
             for j in 0..<cols {
-                if i >= rowsArrays[j].count {
+                // Проверка, есть ли в столбце значение.
+                if i >= colsArrays[j].count {
                     print(" ", separator: "", terminator: "")
                 } else {
-                    print(rowsArrays[j][i], separator: "", terminator: "")
+                    print(colsArrays[j][i], separator: "", terminator: "")
                 }
                 print("║", separator: "", terminator: "")
             }
@@ -81,6 +87,117 @@ class GameCore {
             print("╩═", separator: "", terminator: "")
         }
         print("╝")
+    }
+    
+    
+    
+    func checkWin() -> Bool {
+        func checkCol(col: [Character]) -> Bool {
+            if col.count < 4 {
+                return false
+            }
+            var i = 0
+            var count = 1
+            while col.count - i > 4 {
+                if col[i] == col[i+1] {
+                    count += 1
+                } else {
+                    count = 1
+                }
+                // Проверяем 4 в ряд.
+                if count == 4 {
+                    return true
+                }
+                i += 1
+            }
+            while i < col.count-1 {
+                if col[i] != col[i+1] {
+                    return false
+                }
+                i += 1
+            }
+            return true
+        }
+        
+        func checkRow(rowi: Int) -> Bool {
+            var i = 0
+            var count = 1
+            while cols - i > 4 {
+                if colsArrays[i].count < rowi+1 {
+                    count = 1
+                } else {
+                    if colsArrays[i+1].count < rowi+1  {
+                        count = 1
+                    } else if colsArrays[i][rowi] == colsArrays[i+1][rowi] {
+                        count += 1
+                    } else {
+                        count = 1
+                    }
+                }
+                if count == 4 {
+                    return true
+                }
+                i += 1
+            }
+            while i < cols-1 {
+                if colsArrays[i].count < rowi+1 || colsArrays[i+1].count < rowi+1  {
+                    return false
+                }
+                if colsArrays[i][rowi] != colsArrays[i+1][rowi] {
+                    return false
+                }
+                i += 1
+            }
+            return true
+        }
+        
+        func checkDiag(startCol: Int, startRow: Int) -> Bool {
+            if colsArrays[startCol].count <= startRow {
+                return false
+            }
+            else {
+                let char = colsArrays[startCol][startRow]
+                for i in (1...3) {
+                    if colsArrays[startCol + i].count <= startRow + i {
+                        return false
+                    } else if colsArrays[startCol+i][startRow+i] != char {
+                        return false
+                    }
+                }
+            }
+            return true
+        }
+        
+        func checkCols() -> Bool {
+            for col in colsArrays {
+                if checkCol(col: col) {
+                    return true
+                }
+            }
+            return false
+        }
+        
+        func checkRows() -> Bool {
+            for rowi in (0..<rows).reversed() {
+                if checkRow(rowi: rowi) {
+                    return true
+                }
+            }
+            return false
+        }
+        
+        func checkDiags() -> Bool {
+            for coli in (0...cols-4) {
+                for rowi in (0...rows-4) {
+                    if checkDiag(startCol: coli, startRow: rowi) {
+                        return true
+                    }
+                }
+            }
+            return false
+        }
+        
+        return checkCols() || checkRows() || checkDiags()
     }
     
     func startGame() {
@@ -104,7 +221,7 @@ class GameCore {
                 if let number = Int(input) {
                     if number > cols {
                         print("The column number is out of range (1 - \(cols)")
-                    } else if rowsArrays[number-1].count == rows {
+                    } else if colsArrays[number-1].count == rows {
                         print("Column \(number) is full")
                     } else {
                         correct = true
@@ -115,12 +232,27 @@ class GameCore {
                 }
             }
             if turnFirst {
-                rowsArrays[col].append("o")
+                colsArrays[col].append("o")
             } else {
-                rowsArrays[col].append("*")
+                colsArrays[col].append("*")
+            }
+            drawBoard()
+            if checkWin() {
+                if turnFirst {
+                    print("Player \(player1) won")
+                } else {
+                    print("Player \(player2) won")
+                }
+                print("Game Over!")
+                return
+            }
+            if turn == maxTurn {
+                print("It is a draw")
+                print("Game Over!")
+                return
             }
             turnFirst.toggle()
-            drawBoard()
+            turn += 1
         }
         
     }
