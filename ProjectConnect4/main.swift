@@ -91,8 +91,8 @@ class GameCore {
     
     
     // Несколько страшная функция, но таким образом мы не проходим дважды по уже рассмотренным элементам при проверке строк и столбцов, как например при использовании фильтра.
+    // Также понял, что можно было бы рассматривать победу только для добавленной точки, это было бы быстрее и проще.
     func checkWin() -> Bool {
-        
         // Проверка 1 столбца на 4-в-ряд.
         func checkCol(col: [Character]) -> Bool {
             // Не рассматриваем если меньше элементов.
@@ -178,6 +178,24 @@ class GameCore {
             return true
         }
         
+        // Проверка диагонали в другую сторону.
+        func checkDiagReverse(startCol: Int, startRow: Int) -> Bool {
+            if colsArrays[startCol].count <= startRow {
+                return false
+            }
+            else {
+                let char = colsArrays[startCol][startRow]
+                for i in (1...3) {
+                    if colsArrays[startCol-i].count <= startRow + i {
+                        return false
+                    } else if colsArrays[startCol-i][startRow+i] != char {
+                        return false
+                    }
+                }
+            }
+            return true
+        }
+        
         // Проверка всех столбцов.
         func checkCols() -> Bool {
             for col in colsArrays {
@@ -202,7 +220,7 @@ class GameCore {
         func checkDiags() -> Bool {
             for coli in (0...cols-4) {
                 for rowi in (0...rows-4) {
-                    if checkDiag(startCol: coli, startRow: rowi) {
+                    if checkDiag(startCol: coli, startRow: rowi) || checkDiagReverse(startCol: cols-coli-1, startRow: rowi) {
                         return true
                     }
                 }
@@ -315,7 +333,7 @@ func inputAllData() -> (player1 : String, player2 : String, rows : Int, cols: In
             print("Invalid input")
         }
     }
-
+    
     return (player1!, player2!, dimensions.0, dimensions.1)
 }
 
